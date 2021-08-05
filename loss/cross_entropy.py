@@ -17,7 +17,34 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+class Minimaxloss(nn.Module):
+    def __init__(self, smooth_ratio = 0.15, k=20):
+        super(Minimaxloss, self).__init__()
+        self.smooth_ratio = smooth_ratio
+        self.k = k
+    def forward(self, input, target, frl = False, fmaps = None):
+        index = torch.argmin(inpur, 1)
+        input = input.log_softmax(dim = -1)
+        with torch.no_grad():
+            true_dist = torch.zeros_like(input)
+            true_dist.scatter_(1, index.unsqueeze(1), self.smooth_ratio)
+            true_dist.scatter_(1, label.unsqueeze(1), 1-self.smooth_ratio)
+        minimax_loss = torch.mean(torch.sum(-true_dist * input, dim = -1)
+        if frl: return minimax_loss + frloss
+        else: return minimax_loss
 
+class FRLoss(nn.Module):
+    def __init__(self, k):
+        super(FRLoss, self).__init__()
+        self.k = k
+    def forward(self, fmaps):
+        idx = fmaps.mean((2,3)).topk(self.k)[1]
+        fmaps = fmaps.gather(1, idx.unsqueeze(1).unqueeeze(-1).repeat(1, 1 fmaps.shape[-1], fmaps.shapr[-1]
+        fmaps = fmaps.reshape(fmaps.shape[0], 10,-1)
+        fmaps = fmaps / fmaps.pow(2).sum(-1).sqrt().unsqueeze(-1)
+        fmaps = fmaps.unsqueeze(1).repeat(1, 10, 1, 1)
+        return (famps * fmaps.transpose(2, 1)).sum(-1).mean()
+                                  
 class SoftTargetCrossEntropy(nn.Module):
     """
     The native CE loss with soft target
